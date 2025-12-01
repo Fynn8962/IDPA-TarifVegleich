@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarife Vergleichen</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Tarife vergleichen</h1>
+        <a href="settings_tarif.html" class="icon-btn" aria-label="Einstellungen">&#9881;</a>
+        <a href="add_tarif.html" class="sub-link">Tarife bearbeiten &gt;</a>
+    </header>
+
+    <div class="grid-row" id="tarif-container">
+        <div class="col">
+            <select class="tarif-select" id="select-1">
+                <option value="t1">Tarif 1</option>
+                <option value="t2">Tarif 2</option>
+                <option value="t3">Tarif 3</option>
+            </select>
+            <div class="card" id="card-1">
+                <p>Details zu Tarif 1</p>
+            </div>
+        </div>
+
+        <div class="col">
+            <select class="tarif-select" id="select-2">
+                <option value="t2" selected>Tarif 2</option>
+                <option value="t3">Tarif 3</option>
+                <option value="t4">Tarif 4</option>
+            </select>
+            <div class="card" id="card-2">
+                <p>Details zu Tarif 2</p>
+            </div>
+        </div>
+
+        <div class="col">
+            <select class="tarif-select" id="select-3">
+                <option value="t3" selected>Tarif 3</option>
+                <option value="t4">Tarif 4</option>
+                <option value="t5">Tarif 5</option>
+            </select>
+            <div class="card" id="card-3">
+                <p>Details zu Tarif 3</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="main.js"></script>
+</body>
+</html>
