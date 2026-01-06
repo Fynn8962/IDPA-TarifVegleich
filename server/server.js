@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const app = express();
+require('dotenv').config();
 
 // Middleware
 app.use(cors()); // Erlaubt dem Frontend (anderer Port) zuzugreifen
