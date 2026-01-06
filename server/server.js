@@ -11,7 +11,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../Frontend')));
 
 // 1. Verbindung zur DB (Ersetzt den String mit eurem lokalen oder Atlas String)
-mongoose.connect('mongodb+srv://huberfynn165:Modul1173F@m165-database.s8wohyj.mongodb.net/TarfVegleichDB');
+mongoose.connect(process.env.MONGO_URI);
 
 // 2. Das Modell (Schema) definieren
 const TariffSchema = new mongoose.Schema({
