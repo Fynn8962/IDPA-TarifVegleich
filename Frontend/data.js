@@ -6,7 +6,7 @@ const appData = {
       provider: "Swisscom",
       name: "Inone Mobile S",
       monthlyBaseFee: 39.00,
-      includedMinutes: 100,         // 0 = unlimited
+      includedMinutes: 100,         // null = unlimited
       pricePerMinute: 0.20,         // nach Inklusivminuten
       includedSMS: 100,             // 0 = unlimited
       pricePerSMS: 0.10,            // nach Inklusivsms
@@ -20,7 +20,7 @@ const appData = {
       provider: "Salt",
       name: "Salt Swiss Unlimited",
       monthlyBaseFee: 49.90,
-      includedMinutes: 0,           // unlimited
+      includedMinutes: null,           // unlimited
       pricePerMinute: 0,
       includedSMS: 0,               // unlimited
       pricePerSMS: 0,

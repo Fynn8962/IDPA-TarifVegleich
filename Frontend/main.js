@@ -1,48 +1,58 @@
 document.addEventListener('DOMContentLoaded', () => {
-    
-    // Logik für select_tarif.html: Dropdowns ändern Content
-    const selects = document.querySelectorAll('.tarif-select');
-    selects.forEach(select => {
-        select.addEventListener('change', (e) => {
-            const cardId = e.target.id.replace('select', 'card');
-            const card = document.getElementById(cardId);
-            // Simuliert Daten-Abruf
-            card.innerHTML = `<p>Lade Daten für ${e.target.options[e.target.selectedIndex].text}...</p>`;
-            setTimeout(() => {
-                card.innerHTML = `<h3>${e.target.options[e.target.selectedIndex].text}</h3><p>Preis: XX €<br>Daten: XX GB</p>`;
-            }, 300);
-        });
-    });
+    const API_URL = 'http://localhost:3000/api/tariffs';
+    let loadedTariffs = []; // Hier speichern wir alle Tarife vom Server
 
-    // Logik für add_tarif.html: Formular Submit
-    const addForm = document.getElementById('add-form');
-    if (addForm) {
-        addForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const name = document.getElementById('t-name').value;
-            if (name) {
-                // Füge zur UI Liste hinzu
-                const list = document.getElementById('tarif-list');
-                const li = document.createElement('li');
-                li.className = 'list-item';
-                li.innerHTML = `${name} <span class="close-x" onclick="this.parentElement.remove()">&times;</span>`;
-                list.appendChild(li);
-                
-                // Reset Form
-                addForm.reset();
-                console.log(`Backend Call: POST /api/tarifs { name: ${name} }`);
-            }
+    // 1. Daten vom Backend holen
+    fetch(API_URL)
+        .then(response => response.json())
+        .then(data => {
+            loadedTariffs = data; // Daten global speichern
+            initDropdowns();      // Dropdowns befüllen
+        })
+        .catch(err => console.error('Fehler beim Laden:', err));
+
+    // 2. Dropdowns befüllen
+    function initDropdowns() {
+        const selects = document.querySelectorAll('.tarif-select');
+        
+        selects.forEach(select => {
+            // Für jeden Tarif eine Option erstellen
+            loadedTariffs.forEach(tarif => {
+                const option = document.createElement('option');
+                option.value = tarif._id; // Die MongoDB ID ist der Wert
+                option.textContent = tarif.name;
+                select.appendChild(option);
+            });
+
+            // Event Listener anhängen: Wenn sich DIESES Select ändert
+            select.addEventListener('change', (e) => {
+                updateCard(e.target);
+            });
         });
     }
 
-    // Logik für settings_tarif.html: Speichern
-    const settingsForm = document.getElementById('settings-form');
-    if (settingsForm) {
-        settingsForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            console.log("Backend Call: PUT /api/settings - Daten gespeichert");
-            alert("Einstellungen gespeichert (Simulation)");
-            window.location.href = 'select_tarif.html';
-        });
+    // 3. Karte aktualisieren
+    function updateCard(selectElement) {
+        // ID Mapping: aus "select-1" wird "card-1"
+        const cardId = selectElement.id.replace('select', 'card');
+        const card = document.getElementById(cardId);
+        
+        // Den gewählten Tarif im Array finden
+        const selectedId = selectElement.value;
+        const tarif = loadedTariffs.find(t => t._id === selectedId);
+
+        if (tarif) {
+            // HTML in der Karte rendern
+            card.innerHTML = `
+                <h3>${tarif.name}</h3>
+                <div class="price-box">${tarif.baseFee} CHF</div>
+                <ul class="details-list">
+                    <li><strong>Anbieter:</strong> ${tarif.provider}</li>
+                    <li><strong>Daten:</strong> ${tarif.data.included} MB</li>
+                    <li><strong>SMS:</strong> ${tarif.sms.included}</li>
+                    <li><strong>Minuten:</strong> ${tarif.minutes.included}</li>
+                </ul>
+            `;
+        }
     }
 });
