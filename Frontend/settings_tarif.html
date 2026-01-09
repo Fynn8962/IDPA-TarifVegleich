@@ -1,40 +1,38 @@
 <!DOCTYPE html>
 <html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Einstellungen</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-
-<div class="container" style="max-width: 600px;">
-    <header>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container" style="max-width: 600px">
+      <header>
         <h1>Einstellungen</h1>
-        <a href="select_tarif.html" class="icon-btn" aria-label="Schließen">&#10006;</a>
-    </header>
+        <a href="select_tarif.html" class="icon-btn" aria-label="Schließen"
+          >&#10006;</a
+        >
+      </header>
 
-    <div class="content-box">
+      <div class="content-box">
         <h3>Kommunikationsprofil</h3>
-        
+
         <form id="settings-form">
-            <label>Min Telefonie pro Monat</label>
-            <input type="number" id="set-tel" placeholder="Minuten">
+          <label>Dein Name</label>
+          <input type="text" id="s-username" placeholder="Name" />
 
-            <label>Anzh. SMS</label>
-            <input type="number" id="set-sms" placeholder="Anzahl">
+          <label>Datenverbrauch pro Monat (GB)</label>
+          <input type="number" id="s-data" placeholder="z.B. 20" />
 
-            <label>Datenvolumen Pro Monat</label>
-            <input type="number" id="set-data" placeholder="MB / GB">
+          <label>Telefonie (Minuten)</label>
+          <input type="number" id="s-minutes" placeholder="z.B. 100" />
 
-            <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
-                <a href="#" class="sub-link">weitere Einstellungen</a>
-                <button type="submit" class="btn btn-save">Speichern</button>
-            </div>
+          <button type="submit" class="btn">Speichern</button>
         </form>
+      </div>
     </div>
-</div>
 
-<script src="main.js"></script>
-</body>
+    <script src="main.js"></script>
+  </body>
 </html>

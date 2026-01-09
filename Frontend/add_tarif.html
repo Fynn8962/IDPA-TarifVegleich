@@ -1,51 +1,73 @@
 <!DOCTYPE html>
 <html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tarif Hinzufügen</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-
-<div class="container">
-    <header>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
         <h1>Tarif Hinzufügen</h1>
-        <a href="select_tarif.html" class="icon-btn" aria-label="Schließen">&#10006;</a>
-    </header>
+        <a href="select_tarif.html" class="icon-btn" aria-label="Schließen"
+          >&#10006;</a
+        >
+      </header>
 
-    <div class="split-view">
+      <div class="split-view">
         <div class="col">
-            <form id="add-form">
-                <label>Name</label>
-                <input type="text" id="t-name" placeholder="Tarif Name" required>
-                
-                <label>Datenvolumen (GB)</label>
-                <input type="number" id="t-data1" placeholder="z.B. 10">
-                
-                <label>Preis (€)</label>
-                <input type="number" id="t-data2" placeholder="z.B. 19.99">
-                
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <input type="text" id="t-data3" placeholder="Extra" style="margin-bottom:0;">
-                    <button type="submit" class="btn btn-save">Hinzufügen</button>
-                </div>
-            </form>
-        </div>
+          <form id="add-form">
+            <label>Name</label>
+            <input type="text" id="t-name" placeholder="Tarif Name" required />
 
-        <div class="col">
-            <div style="background: #f0f0f0; padding: 10px; border-radius: 4px; text-align: center; margin-bottom: 10px;">
-                <strong>Vorhandene Tarife</strong>
+            <label>Datenvolumen (GB)</label>
+            <input
+              type="number"
+              id="t-data1"
+              placeholder="z.B. 10"
+              step="0.1"
+            />
+
+            <label>Preis (€)</label>
+            <input
+              type="number"
+              id="t-data2"
+              placeholder="z.B. 19.99"
+              step="0.01"
+            />
+
+            <div style="display: flex; gap: 10px; align-items: center">
+              <input
+                type="text"
+                id="t-data3"
+                placeholder="Anbieter (z.B. Swisscom)"
+                style="margin-bottom: 0"
+              />
+              <button type="submit" class="btn btn-save">Hinzufügen</button>
             </div>
-            <ul class="list-group" id="tarif-list">
-                <li class="list-item">Hinzugefügt 1 <span class="close-x">&times;</span></li>
-                <li class="list-item">Hinzugefügt 2 <span class="close-x">&times;</span></li>
-                <li class="list-item">Hinzugefügt 3 <span class="close-x">&times;</span></li>
-            </ul>
+          </form>
         </div>
-    </div>
-</div>
 
-<script src="main.js"></script>
-</body>
+        <div class="col">
+          <div
+            style="
+              background: #f0f0f0;
+              padding: 10px;
+              border-radius: 4px;
+              text-align: center;
+              margin-bottom: 10px;
+            "
+          >
+            <strong>Vorhandene Tarife</strong>
+          </div>
+          <ul class="list-group" id="tarif-list">
+            
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <script src="main.js"></script>
+  </body>
 </html>
