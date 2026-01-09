@@ -45,11 +45,12 @@ app.delete('/api/tariffs/:id', async (req, res) => {
     res.json({ message: "Deleted" });
 });
 
-// PUT Tarif
+// PUT: Tarif bearbeiten
 app.put('/api/tariffs/:id', async (req, res) => {
-    // { new: true } gibt den aktualisierten Eintrag zurück
-    const updatedTariff = await Tariff.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.json(updatedTariff);
+    const { id } = req.params;
+    // Sucht per ID und überschreibt mit den neuen Daten aus req.body
+    await Tariff.findByIdAndUpdate(id, req.body);
+    res.json({ message: "Tarif aktualisiert" });
 });
 
 
@@ -72,7 +73,7 @@ app.get('/api/settings', async (req, res) => {
     res.json(settings || { username: '', dataUsage: 0, minutesUsage: 0 });
 });
 
-// PUT Settings
+// PUT
 app.put('/api/settings', async (req, res) => {
     // "upsert: true" bedeutet: Update wenn existiert, sonst erstelle neu
     const updatedSettings = await Settings.findOneAndUpdate(
