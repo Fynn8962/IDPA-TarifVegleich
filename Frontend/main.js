@@ -1,3 +1,54 @@
+// --- Custom Modal System ---
+const Modal = {
+  init() {
+    // Erzeugt das HTML dynamisch (muss man nicht in HTML schreiben)
+    const html = `
+        <div id="custom-modal" class="modal-overlay">
+            <div class="modal-box">
+                <p id="modal-text" class="modal-msg"></p>
+                <div id="modal-buttons" class="modal-btns"></div>
+            </div>
+        </div>`;
+    document.body.insertAdjacentHTML("beforeend", html);
+    this.overlay = document.getElementById("custom-modal");
+    this.msg = document.getElementById("modal-text");
+    this.btns = document.getElementById("modal-buttons");
+  },
+
+  close() {
+    this.overlay.style.display = "none";
+  },
+
+  // Ersatz für alert()
+  alert(text) {
+    if (!this.overlay) this.init();
+    this.msg.textContent = text;
+    this.btns.innerHTML = `<button class="btn-modal btn-ok" onclick="Modal.close()">OK</button>`;
+    this.overlay.style.display = "flex";
+  },
+
+  // Ersatz für confirm() -> WICHTIG: Funktioniert mit Callback!
+  confirm(text, onConfirm) {
+    if (!this.overlay) this.init();
+    this.msg.textContent = text;
+
+    // Buttons erstellen
+    this.btns.innerHTML = `
+            <button id="m-cancel" class="btn-modal btn-cancel">Abbrechen</button>
+            <button id="m-confirm" class="btn-modal btn-confirm">Löschen</button>
+        `;
+
+    // Events anhängen
+    document.getElementById("m-cancel").onclick = () => this.close();
+    document.getElementById("m-confirm").onclick = () => {
+      onConfirm(); // Die Lösch-Funktion ausführen
+      this.close();
+    };
+
+    this.overlay.style.display = "flex";
+  },
+};
+
 document.addEventListener("DOMContentLoaded", () => {
   const API_URL = "http://localhost:3000/api/tariffs";
   const SETTINGS_URL = "http://localhost:3000/api/settings";
@@ -213,31 +264,33 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Formular füllen (Edit Start)
-// Formular füllen (Edit Start)
-window.editTariff = (id) => {
-    // 1. Tarif suchen
-    const tariff = window.currentTariffs.find(t => t._id === id);
-    if(!tariff) return;
+    // Formular füllen (Edit Start)
+    window.editTariff = (id) => {
+      // 1. Tarif suchen
+      const tariff = window.currentTariffs.find((t) => t._id === id);
+      if (!tariff) return;
 
-    // 2. IDs befüllen (Achte genau auf die Schreibweise!)
-    document.getElementById('edit-id').value = tariff._id;
-    
-    document.getElementById('t-name').value = tariff.name;
-    document.getElementById('t-provider').value = tariff.provider || ""; // Fallback falls leer
-    document.getElementById('t-baseFee').value = tariff.baseFee;
+      // 2. IDs befüllen (Achte genau auf die Schreibweise!)
+      document.getElementById("edit-id").value = tariff._id;
 
-    // DATEN (Hier war vermutlich der Fehler)
-    document.getElementById('t-data-inc').value = tariff.data.included;
-    // Falls price null ist, machen wir das Feld leer (''), sonst den Wert rein
-    document.getElementById('t-data-price').value = tariff.data.price === null ? '' : tariff.data.price;
+      document.getElementById("t-name").value = tariff.name;
+      document.getElementById("t-provider").value = tariff.provider || ""; // Fallback falls leer
+      document.getElementById("t-baseFee").value = tariff.baseFee;
 
-    // MINUTEN
-    document.getElementById('t-min-inc').value = tariff.minutes.included;
-    document.getElementById('t-min-price').value = tariff.minutes.price === null ? '' : tariff.minutes.price;
+      // DATEN (Hier war vermutlich der Fehler)
+      document.getElementById("t-data-inc").value = tariff.data.included;
+      // Falls price null ist, machen wir das Feld leer (''), sonst den Wert rein
+      document.getElementById("t-data-price").value =
+        tariff.data.price === null ? "" : tariff.data.price;
 
-    // 3. Button ändern
-    document.getElementById('submit-btn').textContent = "Aktualisieren";
-};
+      // MINUTEN
+      document.getElementById("t-min-inc").value = tariff.minutes.included;
+      document.getElementById("t-min-price").value =
+        tariff.minutes.price === null ? "" : tariff.minutes.price;
+
+      // 3. Button ändern
+      document.getElementById("submit-btn").textContent = "Aktualisieren";
+    };
 
     // Formular Reset
     window.resetForm = () => {
@@ -247,11 +300,12 @@ window.editTariff = (id) => {
     };
 
     // Löschen
-    window.deleteTariff = async (id) => {
-      if (confirm("Wirklich löschen?")) {
+    window.deleteTariff = (id) => {
+      // Modal aufrufen und sagen, was passieren soll, WENN "Ja" gedrückt wird
+      Modal.confirm("Möchtest du diesen Tarif wirklich löschen?", async () => {
         await fetch(`${API_URL}/${id}`, { method: "DELETE" });
         loadList();
-      }
+      });
     };
   }
 
@@ -286,7 +340,7 @@ window.editTariff = (id) => {
         body: JSON.stringify(settingsData),
       });
 
-      alert("Profil gespeichert!");
+      
       window.location.href = "select_tarif.html";
     });
   }
