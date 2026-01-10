@@ -1,11 +1,13 @@
 // --- Custom Modal System ---
+// --- Custom Modal System (Erweitert) ---
 const Modal = {
   init() {
-    // Erzeugt das HTML dynamisch (muss man nicht in HTML schreiben)
+    // HTML mit Input-Feld vorbereiten
     const html = `
         <div id="custom-modal" class="modal-overlay">
             <div class="modal-box">
                 <p id="modal-text" class="modal-msg"></p>
+                <div id="modal-input-container"></div>
                 <div id="modal-buttons" class="modal-btns"></div>
             </div>
         </div>`;
@@ -13,181 +15,233 @@ const Modal = {
     this.overlay = document.getElementById("custom-modal");
     this.msg = document.getElementById("modal-text");
     this.btns = document.getElementById("modal-buttons");
+    this.inputContainer = document.getElementById("modal-input-container");
   },
 
   close() {
-    this.overlay.style.display = "none";
+    if (this.overlay) this.overlay.style.display = "none";
+    if (this.inputContainer) this.inputContainer.innerHTML = ""; // Input aufräumen
   },
 
-  // Ersatz für alert()
+  // 1. Alert (Info)
   alert(text) {
     if (!this.overlay) this.init();
     this.msg.textContent = text;
+    this.inputContainer.innerHTML = ""; // Kein Input
     this.btns.innerHTML = `<button class="btn-modal btn-ok" onclick="Modal.close()">OK</button>`;
     this.overlay.style.display = "flex";
   },
 
-  // Ersatz für confirm() -> WICHTIG: Funktioniert mit Callback!
+  // 2. Confirm (Ja/Nein)
   confirm(text, onConfirm) {
     if (!this.overlay) this.init();
     this.msg.textContent = text;
+    this.inputContainer.innerHTML = ""; // Kein Input
 
-    // Buttons erstellen
     this.btns.innerHTML = `
             <button id="m-cancel" class="btn-modal btn-cancel">Abbrechen</button>
-            <button id="m-confirm" class="btn-modal btn-confirm">Löschen</button>
+            <button id="m-confirm" class="btn-modal btn-confirm">Ja, löschen</button>
         `;
 
-    // Events anhängen
     document.getElementById("m-cancel").onclick = () => this.close();
     document.getElementById("m-confirm").onclick = () => {
-      onConfirm(); // Die Lösch-Funktion ausführen
+      onConfirm();
+      this.close();
+    };
+    this.overlay.style.display = "flex";
+  },
+
+  // 3. Prompt (Passwort Abfrage) - NEU!
+  passwordPrompt(text, onVerify) {
+    if (!this.overlay) this.init();
+    this.msg.textContent = text;
+
+    // Passwort-Feld einfügen
+    this.inputContainer.innerHTML = `<input type="password" id="m-input" class="modal-input" placeholder="Passwort" autofocus>`;
+
+    this.btns.innerHTML = `
+            <button id="m-cancel" class="btn-modal btn-cancel">Abbrechen</button>
+            <button id="m-login" class="btn-modal btn-ok">Login</button>
+        `;
+
+    const input = document.getElementById("m-input");
+
+    // Enter-Taste Unterstützung
+    input.onkeydown = (e) => {
+      if (e.key === "Enter") document.getElementById("m-login").click();
+    };
+
+    document.getElementById("m-cancel").onclick = () => this.close();
+    document.getElementById("m-login").onclick = () => {
+      const pw = input.value;
+      onVerify(pw); // Passwort an die Logik übergeben
       this.close();
     };
 
     this.overlay.style.display = "flex";
+    setTimeout(() => input.focus(), 100); // Fokus setzen
   },
+};
+
+// --- Globale Admin-Login Funktion ---
+window.checkAdminLogin = () => {
+  Modal.passwordPrompt(
+    "Admin-Bereich. Bitte Passwort eingeben:",
+    (password) => {
+      if (password === "admin123") {
+        localStorage.setItem("isAdmin", "true");
+        window.location.href = "add_tarif.html";
+      } else {
+        Modal.alert("Falsches Passwort!");
+      }
+    }
+  );
 };
 
 document.addEventListener("DOMContentLoaded", () => {
   const API_URL = "http://localhost:3000/api/tariffs";
-  const SETTINGS_URL = "http://localhost:3000/api/settings";
 
   // ============================================================
-  // TEIL 1: VERGLEICH (select_tarif.html)
+  // TEIL 1: VERGLEICH (select_tarif.html) -> JETZT MIT TOP 3 SORTIERUNG
   // ============================================================
-  if (document.querySelector(".tarif-select")) {
-    let loadedTariffs = [];
-    let userSettings = { dataUsage: 0, minutesUsage: 0 }; // Standardwerte
+  const top3Container = document.getElementById("top3-container");
 
-    // 1. Settings UND Tarife laden (Parallel)
-    Promise.all([
-      fetch(API_URL).then((res) => res.json()),
-      fetch(SETTINGS_URL).then((res) => res.json()),
-    ]).then(([tariffs, settings]) => {
-      loadedTariffs = tariffs;
-      userSettings = settings; // User-Einstellungen speichern
-      initDropdowns(tariffs);
-    });
+  if (top3Container) {
+    // 1. Prüfen: Gibt es schon User-Daten?
+    const storedData = localStorage.getItem("myTarifSettings");
 
-    // 2. Dropdowns füllen (bleibt gleich)
-    function initDropdowns(tariffs) {
-      document.querySelectorAll(".tarif-select").forEach((select) => {
-        select.innerHTML =
-          '<option value="" disabled selected>Tarif wählen...</option>';
-        tariffs.forEach((t) => {
-          select.innerHTML += `<option value="${t._id}">${t.name}</option>`;
+    if (!storedData) {
+      // FALL A: Keine Daten -> Aufforderung anzeigen
+      top3Container.innerHTML = `
+            <div class="welcome-box">
+                <h2>Willkommen beim Tarif-Vergleich!</h2>
+                <p>Damit wir die besten Angebote für dich finden können, <br>
+                müssen wir wissen, wie viel Daten und Minuten du benötigst.</p>
+                
+                <a href="settings_tarif.html" class="btn-cta">Jetzt Profil erstellen</a>
+            </div>
+        `;
+      // Wir brechen hier ab, es werden keine Tarife geladen!
+    } else {
+      // FALL B: Daten vorhanden -> Normal weiter machen
+      let userSettings = JSON.parse(storedData);
+
+      // Jetzt erst Tarife laden
+      fetch(API_URL)
+        .then((res) => res.json())
+        .then((tariffs) => {
+          calculateAndRenderTop3(tariffs, userSettings);
         });
-        select.addEventListener("change", (e) => updateCard(e.target));
-      });
     }
 
-    // 3. Karte aktualisieren MIT BERECHNUNG
-    function updateCard(select) {
-      const tariff = loadedTariffs.find((t) => t._id === select.value);
-      const cardId = select.id.replace("select", "card");
-      const card = document.getElementById(cardId);
+    function calculateAndRenderTop3(tariffs, settings) {
+      // A) Jeden Tarif berechnen und temporär erweitern
+      const calculatedTariffs = tariffs.map((t) => {
+        let totalCost = t.baseFee;
+        let isSuitable = true;
+        let reasons = []; // Begründung für Anforderung 6
 
-      if (tariff) {
-        let totalCost = tariff.baseFee;
-        let isSuitable = true; // Variable: Ist der Tarif überhaupt möglich?
-        let warnings = [];
-
-        // --- A. DATEN PRÜFUNG ---
-        const neededData = userSettings.dataUsage - (tariff.data.included || 0);
+        // Daten Berechnung
+        const neededData = settings.dataUsage - (t.data.included || 0);
         if (neededData > 0) {
-          if (tariff.data.price === null) {
-            // User braucht mehr, aber Tarif erlaubt kein Extra -> Ungültig
-            isSuitable = false;
-            warnings.push(
-              `Fehlende Daten: ${neededData} GB (Nicht erweiterbar)`
+          if (t.data.price === null) {
+            isSuitable = false; // Hard Limit
+            reasons.push(
+              `❌ ${neededData.toFixed(1)} GB fehlen (kein Zukauf möglich)`
             );
           } else {
-            // User zahlt drauf
-            totalCost += neededData * tariff.data.price;
-          }
-        }
-
-        // --- B. MINUTEN PRÜFUNG ---
-        const neededMin =
-          userSettings.minutesUsage - (tariff.minutes.included || 0);
-        if (neededMin > 0) {
-          if (tariff.minutes.price === null) {
-            isSuitable = false;
-            warnings.push(
-              `Fehlende Minuten: ${neededMin} Min (Nicht erweiterbar)`
+            const extra = neededData * t.data.price;
+            totalCost += extra;
+            reasons.push(
+              `ℹ️ ${neededData.toFixed(1)} GB Zukauf (+${extra.toFixed(2)}CHF)`
             );
-          } else {
-            totalCost += neededMin * tariff.minutes.price;
           }
-        }
-
-        // --- C. ANZEIGE ---
-        const dataInfo =
-          tariff.data.included >= userSettings.dataUsage
-            ? `<span style="color:green">✔ ${tariff.data.included} GB reichen</span>`
-            : `<span style="color:red">❌ Nur ${
-                tariff.data.included
-              } GB (Fehlt: ${(
-                userSettings.dataUsage - tariff.data.included
-              ).toFixed(1)} GB)</span>`;
-
-        const minInfo =
-          tariff.minutes.included >= userSettings.minutesUsage
-            ? `<span style="color:green">✔ ${tariff.minutes.included} Min. reichen</span>`
-            : `<span style="color:red">❌ Nur ${
-                tariff.minutes.included
-              } Min. (Fehlt: ${
-                userSettings.minutesUsage - tariff.minutes.included
-              })</span>`;
-
-        if (!isSuitable) {
-          // ... (Code für "Nicht geeignet" bleibt gleich) ...
-          card.innerHTML = `
-        <h3>${tariff.name}</h3>
-        <div class="price-box" style="background:#7f8c8d; color:white;">Nicht geeignet ❌</div>
-        <ul class="details-list" style="color:#c0392b;">
-            ${warnings.map((w) => `<li>${w}</li>`).join("")}
-        </ul>
-    `;
         } else {
-          // ... (Code für "Passt") ...
-          const isExtra = totalCost > tariff.baseFee;
-
-          card.innerHTML = `
-        <h3>${tariff.name}</h3>
-        
-        <div class="price-box" style="background:${
-          isExtra ? "#e67e22" : "#2ecc71"
-        }">
-            ${totalCost.toFixed(2)} € <small>(Effektiv)</small>
-        </div>
-
-        <div style="font-size: 0.9em; margin: 10px 0; background: #f9f9f9; padding: 8px; border-radius: 4px;">
-            <div><strong>Daten:</strong> Du brauchst ${
-              userSettings.dataUsage
-            } GB</div>
-            <div>${dataInfo}</div>
-            <hr style="margin: 5px 0; border: 0; border-top: 1px solid #ddd;">
-            <div><strong>Minuten:</strong> Du brauchst ${
-              userSettings.minutesUsage
-            } Min</div>
-            <div>${minInfo}</div>
-        </div>
-
-        <ul class="details-list">
-            <li>Grundgebühr: <strong>${tariff.baseFee.toFixed(
-              2
-            )} €</strong></li>
-            ${
-              isExtra
-                ? `<li style="color:#d35400"> + Zusatzkosten: ${(
-                    totalCost - tariff.baseFee
-                  ).toFixed(2)} €</li>`
-                : ""
-            }
-        </ul>`;
+          reasons.push(`✅ Daten reichen aus`);
         }
+
+        // Minuten Berechnung
+        const neededMin = settings.minutesUsage - (t.minutes.included || 0);
+        if (neededMin > 0) {
+          if (t.minutes.price === null) {
+            isSuitable = false;
+            reasons.push(`❌ ${neededMin} Min fehlen (kein Zukauf möglich)`);
+          } else {
+            const extra = neededMin * t.minutes.price;
+            totalCost += extra;
+            reasons.push(
+              `ℹ️ ${neededMin} Min Zukauf (+${extra.toFixed(2)}CHF)`
+            );
+          }
+        }
+
+        // Rückgabe eines erweiterten Objekts für die Sortierung
+        return {
+          ...t, // Alle originalen Daten
+          effectivePrice: isSuitable ? totalCost : Infinity, // Infinity schiebt ungeeignete nach ganz unten
+          isSuitable: isSuitable,
+          reasons: reasons,
+        };
+      });
+
+      // B) SORTIEREN (Anforderung 5)
+      // Günstigster Preis zuerst
+      calculatedTariffs.sort((a, b) => a.effectivePrice - b.effectivePrice);
+
+      // C) TOP 3 ANZEIGEN (Anforderung 6)
+      const top3 = calculatedTariffs.slice(0, 3); // Nimm die ersten 3
+
+      top3Container.innerHTML = ""; // Lade-Text entfernen
+
+      top3.forEach((t, index) => {
+        // Farblogik für Platz 1, 2, 3
+        const rankColor =
+          index === 0 ? "gold" : index === 1 ? "silver" : "#cd7f32";
+        const priceDisplay = t.isSuitable
+          ? `${t.effectivePrice.toFixed(
+              2
+            )} CHF <span style="font-size:0.6em">effektiv</span>`
+          : "Nicht geeignet";
+
+        // HTML Karte bauen
+        // HTML Karte bauen (Update mit CSS Klassen)
+        const html = `
+                <div class="card" style="border: 2px solid ${
+                  index === 0 ? "#2ecc71" : "#eee"
+                };">
+                    
+                    <div class="result-header">
+                        <div class="result-title">
+                            <span style="color:${rankColor}; margin-right: 8px;">#${
+          index + 1
+        }</span> 
+                            ${t.name}
+                        </div>
+                        <div class="result-price" style="color: ${
+                          t.isSuitable ? "#333" : "red"
+                        }">
+                            ${priceDisplay}
+                        </div>
+                    </div>
+                    
+                    <div style="color:#666; margin-bottom: 10px; font-size: 0.9rem;">
+                        Anbieter: ${t.provider}
+                    </div>
+                    
+                    <div class="result-details">
+                        <strong>Analyse:</strong>
+                        <ul style="margin: 5px 0; padding-left: 20px; color: #555;">
+                            ${t.reasons.map((r) => `<li>${r}</li>`).join("")}
+                        </ul>
+                    </div>
+                </div>
+            `;
+        top3Container.innerHTML += html;
+      });
+
+      // Falls gar nichts passt oder da ist
+      if (top3.length === 0) {
+        top3Container.innerHTML = "<p>Keine Tarife gefunden.</p>";
       }
     }
   }
@@ -214,7 +268,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const li = document.createElement("li");
         li.className = "list-item";
         li.innerHTML = `
-                    <span>${t.name} (${t.baseFee}€)</span>
+                    <span>${t.name} (${t.baseFee}CHF)</span>
                     <div>
                         <span style="cursor:pointer; margin-right:10px;" onclick="editTariff('${t._id}')">✎</span>
                         <span class="close-x" onclick="deleteTariff('${t._id}')">&times;</span>
@@ -250,7 +304,6 @@ document.addEventListener("DOMContentLoaded", () => {
           included: Number(document.getElementById("t-min-inc").value),
           price: getVal("t-min-price"), // Hier auch
         },
-        sms: { included: 0 },
       };
 
       await fetch(url, {
@@ -315,17 +368,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const settingsForm = document.getElementById("settings-form");
 
   if (settingsForm) {
-    // Laden
-    fetch(SETTINGS_URL)
-      .then((res) => res.json())
-      .then((data) => {
-        document.getElementById("s-username").value = data.username || "";
-        document.getElementById("s-data").value = data.dataUsage || 0;
-        document.getElementById("s-minutes").value = data.minutesUsage || 0;
-      });
+    // A) Laden: Werte aus LocalStorage holen und in Inputs schreiben
+    const storedData = localStorage.getItem("myTarifSettings");
+    if (storedData) {
+      const data = JSON.parse(storedData);
+      document.getElementById("s-username").value = data.username || "";
+      document.getElementById("s-data").value = data.dataUsage || 0;
+      document.getElementById("s-minutes").value = data.minutesUsage || 0;
+    }
 
-    // Speichern
-    settingsForm.addEventListener("submit", async (e) => {
+    // B) Speichern: In LocalStorage schreiben (statt Fetch)
+    settingsForm.addEventListener("submit", (e) => {
       e.preventDefault();
 
       const settingsData = {
@@ -334,14 +387,16 @@ document.addEventListener("DOMContentLoaded", () => {
         minutesUsage: Number(document.getElementById("s-minutes").value),
       };
 
-      await fetch(SETTINGS_URL, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(settingsData),
-      });
+      // Das ist der "Trick": Speichern im Browser
+      localStorage.setItem("myTarifSettings", JSON.stringify(settingsData));
 
-      
-      window.location.href = "select_tarif.html";
+      // Feedback
+      Modal.alert("Einstellungen im Browser gespeichert!");
+
+      // Optional: Nach OK Weiterleitung
+      setTimeout(() => {
+        window.location.href = "select_tarif.html";
+      }, 1500);
     });
   }
 });

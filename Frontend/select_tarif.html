@@ -1,50 +1,33 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tarife Vergleichen</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<div class="container">
-    <header>
-        <h1>Tarife vergleichen</h1>
-        <a href="settings_tarif.html" class="icon-btn" aria-label="Einstellungen">&#9881;</a>
-        <a href="add_tarif.html" class="sub-link">Tarife bearbeiten &gt;</a>
-    </header>
+    <div class="container">
+        <header>
+            <h1>Dein Tarif-Vergleich</h1>
+            <a href="settings_tarif.html" class="icon-btn">Profil bearbeiten</a>
+        </header>
 
-    <div class="grid-row" id="tarif-container">
-        <div class="col">
-            <select class="tarif-select" id="select-1">
-                <option value="" selected disabled>Tarif wählen...</option>
-            </select>
-            <div class="card" id="card-1">
-                <p class="placeholder">Bitte oben wählen</p>
-            </div>
+        <div id="top3-container" class="results-grid">
+            <p style="text-align:center;">Lade Angebote...</p>
         </div>
 
-        <div class="col">
-            <select class="tarif-select" id="select-2">
-                <option value="" selected disabled>Tarif wählen...</option>
-            </select>
-            <div class="card" id="card-2">
-                <p class="placeholder">Bitte oben wählen</p>
-            </div>
-        </div>
-
-        <div class="col">
-            <select class="tarif-select" id="select-3">
-                <option value="" selected disabled>Tarif wählen...</option>
-            </select>
-            <div class="card" id="card-3">
-                <p class="placeholder">Bitte oben wählen</p>
-            </div>
+        <div style="margin-top: 30px; text-align: center;">
+            <a href="#" onclick="checkAdminLogin()" class="admin-corner-btn">
+                Verwaltung
+            </a>
         </div>
     </div>
-</div>
 
-<script src="main.js"></script>
+    <script src="main.js"></script>
 </body>
+
 </html>

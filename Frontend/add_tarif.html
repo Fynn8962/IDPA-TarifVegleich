@@ -5,14 +5,30 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tarif Hinzufügen</title>
+  <script>
+    // Wenn kein Admin-Stempel da ist -> Sofort rauswerfen (ohne Prompt)
+    if (localStorage.getItem('isAdmin') !== 'true') {
+      window.location.href = "select_tarif.html";
+    }
+  </script>
+
   <link rel="stylesheet" href="style.css" />
+
 </head>
 
 <body>
+  <script>
+    function adminLogout() {
+      // Stempel entfernen
+      localStorage.removeItem('isAdmin');
+      // Zurück zur Startseite
+      window.location.href = "select_tarif.html";
+    }
+  </script>
   <div class="container">
     <header>
       <h1>Tarif Hinzufügen</h1>
-      <a href="select_tarif.html" class="icon-btn" aria-label="Schliessen">&#10006;</a>
+      <a href="#" onclick="adminLogout()" class="icon-btn" aria-label="Logout">&#10006;</a>
     </header>
 
     <div class="split-view">
