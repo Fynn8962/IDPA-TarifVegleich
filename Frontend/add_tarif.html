@@ -6,22 +6,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tarif Hinzufügen</title>
   <script>
-    // Wenn kein Admin-Stempel da ist -> Sofort rauswerfen (ohne Prompt)
     if (localStorage.getItem('isAdmin') !== 'true') {
       window.location.href = "select_tarif.html";
     }
   </script>
-
   <link rel="stylesheet" href="style.css" />
-
 </head>
 
 <body>
   <script>
     function adminLogout() {
-      // Stempel entfernen
       localStorage.removeItem('isAdmin');
-      // Zurück zur Startseite
       window.location.href = "select_tarif.html";
     }
   </script>
@@ -34,41 +29,98 @@
     <div class="split-view">
       <div class="col">
         <form id="add-form">
-          <input type="hidden" id="edit-id" />
+          <input type="hidden" id="edit-id">
 
-          <label>Tarif Name & Anbieter</label>
-          <div style="display: flex; gap: 10px">
-            <input type="text" id="t-name" placeholder="Name" required />
-            <input type="text" id="t-provider" placeholder="Anbieter (z.B. Swisscom)" />
+          <div class="form-section-box">
+            <label>Tarif Name & Anbieter</label>
+            <div style="display:flex; gap:10px; margin-bottom: 10px;">
+              <input type="text" id="t-name" placeholder="Tarif Name (z.B. Swiss XL)" required>
+              <input type="text" id="t-provider" placeholder="Anbieter (z.B. Swisscom)">
+            </div>
+
+            <label>Grundgebühr (Monatlich in CHF)</label>
+            <input type="number" id="t-baseFee" placeholder="0.00" step="0.05" min="0" required>
           </div>
 
-          <label>Grundgebühr (CHF)</label>
-          <input type="number" id="t-baseFee" placeholder="19.90" step="0.01" required />
+          <div class="form-section-box" style="border-left: 4px solid #3498db;">
+            <div class="form-header">
+              <label> Datenvolumen</label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="cb-data-flat" onchange="toggleData()">
+                Flatrate
+              </label>
+            </div>
 
-          <label>Daten: Inklusive (GB) & Preis pro extra GB</label>
-          <div style="display:flex; gap:10px;">
-            <input type="number" id="t-data-inc" placeholder="GB inkl." step="0.1">
-            <input type="number" id="t-data-price" placeholder="Leer = Sperre | 0 = Flat" step="0.01">
+            <div style="display:flex; gap:10px;" id="group-data">
+              <div style="flex:1">
+                <label style="font-size:0.8em; color:#666;">GB Inklusive</label>
+                <input type="number" id="t-data-inc" placeholder="z.B. 10" step="0.1" min="0">
+              </div>
+              <div style="flex:1">
+                <label style="font-size:0.8em; color:#666;">CHF pro Extra-GB</label>
+                <input type="number" id="t-data-price" placeholder="z.B. 2.50" step="0.05" min="0">
+              </div>
+            </div>
           </div>
 
-          <label>Minuten: Inklusive & Preis pro extra Minute</label>
-          <div style="display:flex; gap:10px;">
-            <input type="number" id="t-min-inc" placeholder="Min. inkl." step="1">
-            <input type="number" id="t-min-price" placeholder="Leer = Sperre | 0 = Flat" step="0.01">
+          <div class="form-section-box" style="border-left: 4px solid #2ecc71;">
+            <div class="form-header">
+              <label> Telefonie</label>
+              <div style="display:flex; gap:10px;">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="cb-min-flat" onchange="toggleMin('flat')">
+                  Flat
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" id="cb-min-off" onchange="toggleMin('off')">
+                  Aus
+                </label>
+              </div>
+            </div>
+
+            <div style="display:flex; gap:10px;" id="group-min">
+              <div style="flex:1">
+                <label style="font-size:0.8em; color:#666;">Minuten Inklusive</label>
+                <input type="number" id="t-min-inc" placeholder="z.B. 120" step="1" min="0">
+              </div>
+              <div style="flex:1">
+                <label style="font-size:0.8em; color:#666;">CHF pro Extra-Min</label>
+                <input type="number" id="t-min-price" placeholder="z.B. 0.30" step="0.05" min="0">
+              </div>
+            </div>
           </div>
 
-          <button type="submit" id="submit-btn" class="btn btn-save" style="margin-top: 15px; width: 100%">
-            Hinzufügen
-          </button>
-          <button type="button" onclick="resetForm()" style="
-                margin-top: 5px;
-                width: 100%;
-                border: none;
-                background: transparent;
-              ">
-            Abbrechen
-          </button>
+          <button type="submit" id="submit-btn" class="btn btn-save"
+            style="width:100%; font-weight:bold; padding:15px;"> Tarif Speichern</button>
+          <button type="button" onclick="resetForm()"
+            style="margin-top:10px; width:100%; border:none; background:transparent; color:#666;">Abbrechen</button>
         </form>
+
+        <script>
+          function toggleData() {
+            const isFlat = document.getElementById('cb-data-flat').checked;
+            const inputs = document.getElementById('group-data').querySelectorAll('input');
+            inputs.forEach(input => {
+              input.disabled = isFlat;
+              if (isFlat) input.value = '';
+            });
+          }
+
+          function toggleMin(mode) {
+            const cbFlat = document.getElementById('cb-min-flat');
+            const cbOff = document.getElementById('cb-min-off');
+            const inputs = document.getElementById('group-min').querySelectorAll('input');
+
+            if (mode === 'flat' && cbFlat.checked) cbOff.checked = false;
+            if (mode === 'off' && cbOff.checked) cbFlat.checked = false;
+
+            const isDisabled = cbFlat.checked || cbOff.checked;
+            inputs.forEach(input => {
+              input.disabled = isDisabled;
+              if (isDisabled) input.value = '';
+            });
+          }
+        </script>
       </div>
 
       <div class="col">
@@ -85,7 +137,8 @@
       </div>
     </div>
   </div>
-
+  <script src="modals.js"></script>
+  <script src="auth.js"></script>
   <script src="main.js"></script>
 </body>
 
